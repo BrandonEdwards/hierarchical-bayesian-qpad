@@ -1,0 +1,139 @@
+---
+title: "Hierarchical QPAD"
+author: 
+  - \normalsize Brandon P.M. Edwards*^1,2^
+  - \small ^1^Department of Biology, Carleton University, Ottawa, ON, Canada
+  - \small ^2^Canadian Wildlife Service, Environment and Climate Change Canada, Ottawa, ON, Canada
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  rmarkdown::pdf_document:
+    toc: false
+    keep_tex: yes
+    fig_caption: yes
+    includes:
+      in_header: preamble.tex
+fontsize: 11pt
+geometry: margin=1in
+documentclass: article
+subparagraph: true
+bibliography: references.bib
+csl: reference-style.csl
+---
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+\doublespacing
+\vfill
+
+# MANUSCRIPT INFORMATION
+
+Format: Methods in Ecology and Evolution (research article)    \newline
+Running headline: Bayesian QPAD    \newline
+Abstract word count: 0 / 350    \newline
+Main text word count: 0 / 7,000  (including captions and references)    \newline
+Number of references: 0    \newline
+Number of figures: 0 / 6    \newline
+Keywords: TO DO    \newline
+Spelling: American English (en-US)
+
+\clearpage
+\linenumbers
+
+# ABSTRACT
+\begin{spacing}{1.5}
+
+TO DO
+
+\end{spacing}
+
+\clearpage
+
+# INTRODUCTION
+
+TO DO
+
+\clearpage
+
+# METHODS
+
+## QPAD Removal Modelling
+
+TO DO
+
+## QPAD Distance Modelling
+
+TO DO
+
+## Model Validation
+We developed three designed experiments to both compare a Bayesian implementation of the QPAD methodology against the maximum likelihood implementation, and to compare within the Bayesian approach the use of single- vs. multi-species modelling and weak vs. strong priors. The experimental designs presented here follow the ADEMP protocol, which explictly defines the aims, data-generating mechanisms, estimands, methods, and performance measures for a given simulation study [@morris_using_2019].
+
+### Experiment 1:
+**Aim**: To corroborate the results of the Bayesian QPAD model with the maximum likelihood QPAD model, for single species models.
+
+**Data-generating mechanisms**: Bird count data are simulated using a constant singing rate $\phi$ and constant effective detection radius $\tau$. The recording of birds in any survey requires the considering of a bird's availability and the bird's conditional perceptibility. Suppose we are sampling at a site that contains $N$ individuals of species $s$. The availability $p$ is the probability that a bird gives a cue within a time interval $t$ of the bird survey, and is calculated as
+
+\[
+  p(t_j) = 1 - \exp\{-t_j \phi\}
+\]
+That is, $p$ is the proportion of $N$ individuals that give a cue and are available to be perceived by an observer. 
+
+Then, the perceptibility $q$ ks the probability that a bird cue is perceived by an observer, given the bird gives a cue, and is calculated as 
+
+\[
+  q(r_k) = \dfrac{\pi\tau^2\left(1-\exp\left[\dfrac{-r_k^2}{\tau^2}\right]\right)}{\pi r_k^2}  
+\]
+
+That is, $q$ is the proportion of $Np$ individuals that are perceived by an observer *and* recorded. Therefore, once a survey is complete, a total of $n = Npq$ birds are recorded.
+
+Because the QPAD methodology is meant to allow for heterogeneous data [@solymos_calibrating_2013], we allow for a random proportion of the observations of each dataset to be generated using any 4 of the following sampling protocols:
+
+ * P1: Removal Sampling of 0-3 minute, 3-4 minutes, 3-5 minutes, Distance Sampling of 0-50m, 50-100m, 100-400m
+ * P2: Removal Sampling of 0-2 minute, 2-4 minutes, 4-5 minutes, 5-6 minutes, Distance Sampling of 0-25, 25-50, 50-100, 100-150
+ * P3: Removal Sampling of 1 minute intervals up to 10 minutes, Distance sampling of 25m bins up to 150, then 150 +
+ * P4: Removal sampling of 0-2 minutes, then 1 minute intervals up to 8 minutes, Distance sampling of 10m up to 100, then 100m +
+ 
+The proportions of each protocol are drawn from a Dirichlet distribution with a concentration parameter vector $\mathbf{a} = \mathbf{1}$.
+
+The $i$th sample in a data set represents results from an independent bird survey. Thus we allow $N$ to vary by sample by drawing $N\sim Poisson(10)$, and adding 1 to each $N$ to ensure no 0 counts exist.
+
+For each sampling event $i$, we first calculate the proportion of $N$ that become available in the first time band $j = 1$, by subbing 
+
+### Experiment 2
+TO DO
+
+### Experiment 3
+
+TO DO
+
+
+\clearpage
+
+# RESULTS
+
+TO DO
+
+\clearpage
+
+# DISCUSSION
+
+TO DO
+
+\clearpage
+
+# CONCLUSIONS
+
+TO DO
+
+\clearpage
+
+# ACKNOWLEDGEMENTS
+
+TO DO
+
+# AUTHOR CONTRIBUTIONS
+
+TO DO
+
+
