@@ -60,7 +60,9 @@ sim_pc <- function(n_obs = 1000,
   
   #' Main algorithm
   #' First,
-  for (n in 1:n_obs)
+  n <- 1
+  chances_counter <- 0
+  while (n <= 1000)
   {
     N <- rem_df[n, "N"]
     p <- rem_df[n, "Protocol"]
@@ -80,21 +82,60 @@ sim_pc <- function(n_obs = 1000,
         available[j] <- round(N * (1 - exp(-max_times_p[j] * phi))) - sum(available)
       }
       
-      rem_df[n, paste0("Int", j)] <- available[j]
-    }
-      
-      binned_birds <- rmultinom(1, available[j], prob = rep(1 / n_dist_bins[p],
-                                                            n_dist_bins[p]))
-      recorded <- round(binned_birds * (pi * tau^2 * (1 - exp(-max_dist_p[1:n_dist_bins[p]]^2 / tau^2))) / (pi * max_dist_p[1:n_dist_bins[p]] ^ 2))
-      
-      
+      if (available[j] > 0)
+      {
+        bird_dists <- runif(n = available[j], min = 0, max = max(max_dist_p, na.rm = TRUE))
+        binned_birds <- as.data.frame(table(cut(bird_dists, breaks = c(-1, max_dist_p[1:n_dist_bins[p]]))))$Freq
+        
+        u_r <- 1 - exp(-(max_dist_p[1:n_dist_bins[p]] ^ 2 / tau^2))
+        recorded <- round(binned_birds * ((tau^2 / max_dist_p[1:n_dist_bins[p]] ^ 2) * (u_r)))
+        rem_df[n, paste0("Int", j)] <- sum(recorded)       
+      }else{
+        recorded <- rep(0, n_dist_bins[p])
+        rem_df[n, paste0("Int", j)] <- sum(recorded)       
+      }
       dist_total <- dist_total + recorded
     }
     
     dis_df[n, 2 + c(1:n_dist_bins[p])] <- dist_total
+    
+    # Check for 0 counts for a survey. If so, throw that away and try again
+    if (sum(dist_total) == 0)
+    {
+      if (chances_counter == 10)
+      {
+        N <- N + 1
+        print(rem_df[n, "N"])
+        rem_df[n, "N"] <- N
+        print(rem_df[n, "N"])
+        dis_df[n, "N"] <- N
+        chances_counter <- 0
+        n <- n - 1
+      }else{
+        chances_counter <- chances_counter + 1
+        n <- n - 1
+      }
+    }else{
+      chances_counter <- 0
+    }
 
+    n <- n + 1
   }
   
+  time_design <- matrix(data = NA,
+                        nrow = n_obs,
+                        ncol = ncol(max_times))
+  time_design <- data.frame(max_times[protocol_num, ])
+  names(time_design) <- paste0(rep("Int", times = ncol(max_times)), 1:ncol(max_times))
+  
+  dist_design <- matrix(data = NA,
+                        nrow = n_obs,
+                        ncol = ncol(max_dist))
+  dist_design <- data.frame(max_dist[protocol_num, ])
+  names(dist_design) <- paste0(rep("Int", times = ncol(max_dist)), 1:ncol(max_dist))
+                               
   return(list(rem = rem_df,
-              dis = dis_df))
+              dis = dis_df,
+              dist_design = dist_design,
+              time_design = time_design))
 }
