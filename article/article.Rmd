@@ -58,7 +58,28 @@ TO DO
 
 # METHODS
 
-## QPAD Removal Modelling
+## Single Species Modelling
+
+The single species Bayesian QPAD modelling is developed similarly to the conditional maximum likelihood approach in [@solymos_calibrating_2013]. For posterity, we will derive the model here, including choice of priors for relevant parameters. 
+
+Let $Y_{ijk}$ be the count of a given species during sampling event $i$, occuring in time band $j \in [1,J]$ and/or distance band $k \in [1,K]$. 
+
+### Removal Modelling
+
+For removal modelling, we sum counts over all distance bands; that is, we have $Y_{ij.} = \sum_K Y_{ijk}$. Let $\pi_{ij}$ be the probability that an individual $y$ is a member of the set of individuals in $Y_{ij.}$, given it is a member of the set of individuals in the total count $Y_{i..}$. Then, the density function for the removal model is given by
+
+\[
+  Y_{ij.}\sim multinomial(Y_{i..}, \vec{\pi}_{i})
+\]
+
+Similar to [@solymos_calibrating_2013], let $t_{ij}$ be the maximum time for time band $j$ during sampling event $i$, and let $\phi_i$ be the unknown cue rate. Then, we have
+
+\[
+  \pi_{ij} = \begin{cases}
+  \dfrac{\exp\{-t_{ij-1} \phi_i\} - \exp\{-t_{ij}\phi_i\}}{1-\exp\{-t_{Ji}\phi_i\}}, &\text{$j>1$} \\
+  1-\sum_{a=2}^J \pi_a, &\text{$j=1$}
+  \end{cases}
+\]
 
 TO DO
 

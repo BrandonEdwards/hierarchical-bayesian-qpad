@@ -128,7 +128,7 @@
 \author{\normalsize Brandon P.M. Edwards*\textsuperscript{1,2} \and \small \textsuperscript{1}Department of Biology, Carleton University,
 Ottawa, ON, Canada \and \small \textsuperscript{2}Canadian Wildlife Service, Environment and
 Climate Change Canada, Ottawa, ON, Canada}
-\date{25 October 2021}
+\date{26 October 2021}
 
 \begin{document}
 \maketitle
@@ -172,8 +172,42 @@ TO DO
 \hypertarget{methods}{%
 \section{METHODS}\label{methods}}
 
-\hypertarget{qpad-removal-modelling}{%
-\subsection{QPAD Removal Modelling}\label{qpad-removal-modelling}}
+\hypertarget{single-species-modelling}{%
+\subsection{Single Species Modelling}\label{single-species-modelling}}
+
+The single species Bayesian QPAD modelling is developed similarly to the
+conditional maximum likelihood approach in (Sólymos \emph{et al.} 2013).
+For posterity, we will derive the model here, including choice of priors
+for relevant parameters.
+
+Let \(Y_{ijk}\) be the count of a given species during sampling event
+\(i\), occuring in time band \(j \in [1,J]\) and/or distance band
+\(k \in [1,K]\).
+
+\hypertarget{removal-modelling}{%
+\subsubsection{Removal Modelling}\label{removal-modelling}}
+
+For removal modelling, we sum counts over all distance bands; that is,
+we have \(Y_{ij.} = \sum_K Y_{ijk}\). Let \(\pi_{ij}\) be the
+probability that an individual \(y\) is a member of the set of
+individuals in \(Y_{ij.}\), given it is a member of the set of
+individuals in the total count \(Y_{i..}\). Then, the density function
+for the removal model is given by
+
+\[
+  Y_{ij.}\sim multinomial(Y_{i..}, \vec{\pi}_{i})
+\]
+
+Similar to (Sólymos \emph{et al.} 2013), let \(t_{ij}\) be the maximum
+time for time band \(j\) during sampling event \(i\), and let \(\phi_i\)
+be the unknown cue rate. Then, we have
+
+\[
+  \pi_{ij} = \begin{cases}
+  \dfrac{\exp\{-t_{ij-1} \phi_i\} - \exp\{-t_{ij}\phi_i\}}{1-\exp\{-t_{Ji}\phi_i\}}, &\text{$j>1$} \\
+  1-\sum_{a=2}^J \pi_a, &\text{$j=1$}
+  \end{cases}
+\]
 
 TO DO
 
