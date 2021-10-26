@@ -105,9 +105,7 @@ sim_pc <- function(n_obs = 1000,
       if (chances_counter == 10)
       {
         N <- N + 1
-        print(rem_df[n, "N"])
         rem_df[n, "N"] <- N
-        print(rem_df[n, "N"])
         dis_df[n, "N"] <- N
         chances_counter <- 0
         n <- n - 1
