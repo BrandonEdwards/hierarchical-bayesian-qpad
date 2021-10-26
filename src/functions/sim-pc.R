@@ -87,7 +87,7 @@ sim_pc <- function(n_obs = 1000,
         bird_dists <- runif(n = available[j], min = 0, max = max(max_dist_p, na.rm = TRUE))
         binned_birds <- as.data.frame(table(cut(bird_dists, breaks = c(-1, max_dist_p[1:n_dist_bins[p]]))))$Freq
         
-        u_r <- 1 - exp(-(max_dist_p[1:n_dist_bins[p]] ^ 2 / tau^2))
+        u_r <- 1 - exp(-(max_dist_p[1:n_dist_bins[p]] / tau) ^ 2)
         recorded <- round(binned_birds * ((tau^2 / max_dist_p[1:n_dist_bins[p]] ^ 2) * (u_r)))
         rem_df[n, paste0("Int", j)] <- sum(recorded)       
       }else{
