@@ -80,10 +80,13 @@ sim_pc <- function(n_obs = 1000,
         available[j] <- round(N * (1 - exp(-max_times_p[j] * phi))) - sum(available)
       }
       
+      rem_df[n, paste0("Int", j)] <- available[j]
+    }
+      
       binned_birds <- rmultinom(1, available[j], prob = rep(1 / n_dist_bins[p],
                                                             n_dist_bins[p]))
       recorded <- round(binned_birds * (pi * tau^2 * (1 - exp(-max_dist_p[1:n_dist_bins[p]]^2 / tau^2))) / (pi * max_dist_p[1:n_dist_bins[p]] ^ 2))
-      rem_df[n, paste0("Int", j)] <- sum(recorded)
+      
       
       dist_total <- dist_total + recorded
     }
