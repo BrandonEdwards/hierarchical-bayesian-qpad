@@ -62,7 +62,7 @@ sim_pc <- function(n_obs = 1000,
   #' First,
   n <- 1
   chances_counter <- 0
-  while (n <= 1000)
+  while (n <= n_obs)
   {
     N <- rem_df[n, "N"]
     p <- rem_df[n, "Protocol"]

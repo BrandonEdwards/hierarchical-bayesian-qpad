@@ -14,9 +14,9 @@
 data {
   int<lower = 1> n_samples;           // total number of sampling events i
   int<lower = 1> n_covariates;        // total number of covariates
-  int<lower = 1> n_species;           // total number of species being modelled
+//  int<lower = 1> n_species;           // total number of species being modelled
   int<lower = 2> max_intervals;       // maximum number of intervals being considered
-  int species[n_samples];             // species being considered for each sample
+  //int species[n_samples];             // species being considered for each sample
   int abund_per_band[n_samples, max_intervals];// abundance in time band j for sample i
   vector[n_samples] abund_per_sample; // total abundnace for sample i
   int bands_per_sample[n_samples]; // number of time bands for sample i
@@ -26,9 +26,9 @@ data {
 
 parameters {
   row_vector[n_covariates] mu;           // mean vector
-  vector<lower = 0>[n_covariates] tau;   // scale vector for Sigma
+  vector<lower = 0>[n_covariates] tau_omega;   // scale vector for Sigma
   corr_matrix[n_covariates] Omega;       // correlation matrix for Sigma
-  matrix[n_species, n_covariates] gamma; // coefficients of interest
+  vector[n_covariates] gamma; // coefficients of interest
 }
 
 model {
@@ -36,16 +36,14 @@ model {
   matrix[n_samples, max_intervals] Pi;   // probabilities
   
   Omega ~ lkj_corr(2);
-  tau ~ cauchy(0, 2.5);
+  tau_omega ~ cauchy(0, 2.5);
   mu ~ normal(0, 0.5);
   
   Pi = rep_matrix(0, n_samples, max_intervals);
+
+  gamma ~ multi_normal(mu, quad_form_diag(Omega, tau_omega));
   
-  for (s in 1:n_species)
-  {
-    gamma[s,] ~ multi_normal(mu, quad_form_diag(Omega, tau));
-  }
-  log_phi = rows_dot_product(X, gamma[species,]);
+  log_phi = X * gamma;
   
   for (i in 1:n_samples)
   {

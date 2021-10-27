@@ -11,6 +11,9 @@ library(dirmult)
 library(detect)
 library(doParallel)
 library(foreach)
+library(rstan)
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
 
 # This is the (fairly) generic function to simulate point counts
 source("src/functions/sim-pc.R")
@@ -22,7 +25,7 @@ set.seed(seed = 6846,
          normal.kind = "Inversion")
 
 n_cores <- 4
-n_obs <- 1000
+n_obs <- 300
 n_sim <- 4
 
 phi <- 0.3
@@ -60,7 +63,6 @@ for (s in 1:n_sim)
 
 ####### Maximum Likelihood ########################
 
-
 cluster <- makeCluster(n_cores, type = "PSOCK")
 registerDoParallel(cluster)
 
@@ -77,3 +79,42 @@ foreach (i = 1:n_sim, .packages = 'detect') %dopar%
 
 stopCluster(cluster)
 
+####### Bayesian Model (Stan) #####################
+
+i <- 1
+x <- sim_data[[i]]
+
+# Removal Modelling
+rem <- x$rem[, 3:(max(n_time_bins) + 2)]
+
+#' Corresponds with "bands_per_sample" in removal.stan
+time_bands_per_sample <- unname(apply(rem,
+                                      1,
+                                      function (x) sum(!is.na(x))))
+
+#' Total abundance per sampling event.
+#' I.e., this is the sum of Y_ij over j
+#' Corresponds with "abund_per_sample" in removal.stan
+total_abund_per_sample <- unname(apply(rem, 1, function(x) sum(x, na.rm = TRUE)))
+
+# Design matrix, just NULL model for now
+X <- matrix(data = 1, nrow = n_obs, ncol = 1)
+
+#' Corresponds with "abund_per_band" in removal.stan
+abundance_per_band <- rem
+abundance_per_band[is.na(abundance_per_band)] <- 0
+
+#' Corresponds with "max_time" in removal.stan
+time_design <- x$time_design
+time_design[!is.na(time_design)] <- 0
+
+stan_data_rem <- list(n_samples = n_obs,
+                      n_covariates = ncol(X),
+                      max_intervals = ncol(rem),
+                      abund_per_band = abundance_per_band,
+                      abund_per_sample = total_abund_per_sample,
+                      bands_per_sample = time_bands_per_sample,
+                      max_time = time_design,
+                      X = X)
+
+model <- stan_model(file = "stan/removal.stan")
