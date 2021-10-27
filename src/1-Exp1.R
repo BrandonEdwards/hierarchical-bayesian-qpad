@@ -74,7 +74,7 @@ foreach (i = 1:n_sim, .packages = 'detect') %dopar%
   distance <- cmulti(as.matrix(x$dis[, 3:ncol(x$dis)]) | as.matrix(x$dist_design) ~ 1, type = "dis")
   
   model_list <- list(removal, distance)
-  save(model_list, file = paste0("output/exp1/mle_", i, ".rda"))
+  save(model_list, file = paste0("/output/exp1/mle_", i, ".rda"))
 }
 
 stopCluster(cluster)
@@ -106,7 +106,7 @@ abundance_per_band[is.na(abundance_per_band)] <- 0
 
 #' Corresponds with "max_time" in removal.stan
 time_design <- x$time_design
-time_design[!is.na(time_design)] <- 0
+time_design[is.na(time_design)] <- 0
 
 stan_data_rem <- list(n_samples = n_obs,
                       n_covariates = ncol(X),
@@ -118,3 +118,15 @@ stan_data_rem <- list(n_samples = n_obs,
                       X = X)
 
 model <- stan_model(file = "stan/removal.stan")
+
+stime = system.time(stan_fit <- 
+                      sampling(model,
+                               data = stan_data_rem,
+                               verbose = TRUE,
+                               chains = 3,
+                               iter = 200,
+                               warmup = 100,
+                               cores = 3,
+                               pars = c("gamma"),
+                               control = list(adapt_delta = 0.8,
+                                              max_treedepth = 15)))
