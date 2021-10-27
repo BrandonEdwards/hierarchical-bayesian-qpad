@@ -25,8 +25,8 @@ set.seed(seed = 6846,
          normal.kind = "Inversion")
 
 n_cores <- 4
-n_obs <- 300
-n_sim <- 4
+n_obs <- 1000
+n_sim <- 1
 
 phi <- 0.3
 tau <- 200
@@ -74,59 +74,111 @@ foreach (i = 1:n_sim, .packages = 'detect') %dopar%
   distance <- cmulti(as.matrix(x$dis[, 3:ncol(x$dis)]) | as.matrix(x$dist_design) ~ 1, type = "dis")
   
   model_list <- list(removal, distance)
-  save(model_list, file = paste0("/output/exp1/mle_", i, ".rda"))
+  save(model_list, file = paste0("output/exp1/mle_", i, ".rda"))
 }
 
 stopCluster(cluster)
 
 ####### Bayesian Model (Stan) #####################
 
-i <- 1
-x <- sim_data[[i]]
+# Removal Modelling loop
+rem_model <- stan_model(file = "stan/removal.stan")
+for (i in 1:n_sim)
+{
+  x <- sim_data[[i]]
+  rem <- x$rem[, 3:(max(n_time_bins) + 2)]
+  
+  #' Corresponds with "bands_per_sample" in removal.stan
+  time_bands_per_sample <- unname(apply(rem,
+                                        1,
+                                        function (x) sum(!is.na(x))))
+  
+  #' Total abundance per sampling event.
+  #' I.e., this is the sum of Y_ij over j
+  #' Corresponds with "abund_per_sample" in removal.stan
+  total_abund_per_sample <- unname(apply(rem, 1, function(x) sum(x, na.rm = TRUE)))
+  
+  # Design matrix, just NULL model for now
+  X <- matrix(data = 1, nrow = n_obs, ncol = 1)
+  
+  #' Corresponds with "abund_per_band" in removal.stan
+  abundance_per_band <- rem
+  abundance_per_band[is.na(abundance_per_band)] <- 0
+  
+  #' Corresponds with "max_time" in removal.stan
+  time_design <- x$time_design
+  time_design[is.na(time_design)] <- 0
+  
+  stan_data_rem <- list(n_samples = n_obs,
+                        n_covariates = ncol(X),
+                        max_intervals = ncol(rem),
+                        abund_per_band = abundance_per_band,
+                        abund_per_sample = total_abund_per_sample,
+                        bands_per_sample = time_bands_per_sample,
+                        max_time = time_design,
+                        X = X)
+  
+  stime = system.time(stan_fit <- 
+                        sampling(rem_model,
+                                 data = stan_data_rem,
+                                 verbose = TRUE,
+                                 chains = 3,
+                                 iter = 2000,
+                                 warmup = 1000,
+                                 cores = 3,
+                                 pars = c("gamma"),
+                                 control = list(adapt_delta = 0.8,
+                                                max_treedepth = 15)))
+  
+}
 
-# Removal Modelling
-rem <- x$rem[, 3:(max(n_time_bins) + 2)]
-
-#' Corresponds with "bands_per_sample" in removal.stan
-time_bands_per_sample <- unname(apply(rem,
-                                      1,
-                                      function (x) sum(!is.na(x))))
-
-#' Total abundance per sampling event.
-#' I.e., this is the sum of Y_ij over j
-#' Corresponds with "abund_per_sample" in removal.stan
-total_abund_per_sample <- unname(apply(rem, 1, function(x) sum(x, na.rm = TRUE)))
-
-# Design matrix, just NULL model for now
-X <- matrix(data = 1, nrow = n_obs, ncol = 1)
-
-#' Corresponds with "abund_per_band" in removal.stan
-abundance_per_band <- rem
-abundance_per_band[is.na(abundance_per_band)] <- 0
-
-#' Corresponds with "max_time" in removal.stan
-time_design <- x$time_design
-time_design[is.na(time_design)] <- 0
-
-stan_data_rem <- list(n_samples = n_obs,
-                      n_covariates = ncol(X),
-                      max_intervals = ncol(rem),
-                      abund_per_band = abundance_per_band,
-                      abund_per_sample = total_abund_per_sample,
-                      bands_per_sample = time_bands_per_sample,
-                      max_time = time_design,
-                      X = X)
-
-model <- stan_model(file = "stan/removal.stan")
-
-stime = system.time(stan_fit <- 
-                      sampling(model,
-                               data = stan_data_rem,
-                               verbose = TRUE,
-                               chains = 3,
-                               iter = 200,
-                               warmup = 100,
-                               cores = 3,
-                               pars = c("gamma"),
-                               control = list(adapt_delta = 0.8,
-                                              max_treedepth = 15)))
+# Distance Modelling loop
+dis_model <- stan_model(file = "stan/distance.stan")
+for (i in 1:n_sim)
+{
+  x <- sim_data[[i]]
+  dis <- x$dis[, 3:(max(n_dist_bins) + 2)]
+  
+  #' Corresponds with "bands_per_sample" in distance.stan
+  dist_bands_per_sample <- unname(apply(dis,
+                                        1,
+                                        function (x) sum(!is.na(x))))
+  
+  #' Total abundance per sampling event.
+  #' I.e., this is the sum of Y_ik over k
+  #' Corresponds with "abund_per_sample" in distance.stan
+  total_abund_per_sample <- unname(apply(dis, 1, function(x) sum(x, na.rm = TRUE)))
+  
+  # Design matrix, just NULL model for now
+  X <- matrix(data = 1, nrow = n_obs, ncol = 1)
+  
+  #' Corresponds with "abund_per_band" in distance.stan
+  abundance_per_band <- dis
+  abundance_per_band[is.na(abundance_per_band)] <- 0
+  
+  #' Corresponds with "max_dist" in distance.stan
+  dist_design <- x$dist_design
+  dist_design[is.na(dist_design)] <- 0
+  
+  stan_data_dis <- list(n_samples = n_obs,
+                        n_covariates = ncol(X),
+                        max_intervals = ncol(dis),
+                        abund_per_band = abundance_per_band,
+                        abund_per_sample = total_abund_per_sample,
+                        bands_per_sample = dist_bands_per_sample,
+                        max_dist = dist_design,
+                        X = X)
+  
+  stime = system.time(stan_fit <- 
+                        sampling(dis_model,
+                                 data = stan_data_dis,
+                                 verbose = TRUE,
+                                 chains = 3,
+                                 iter = 2000,
+                                 warmup = 1000,
+                                 cores = 3,
+                                 pars = c("theta"),
+                                 control = list(adapt_delta = 0.8,
+                                                max_treedepth = 15)))
+  
+}
