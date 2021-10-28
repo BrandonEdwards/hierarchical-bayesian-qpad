@@ -87,8 +87,11 @@ sim_pc <- function(n_obs = 1000,
     {
       tr <- bsims_transcribe(sim_reps[[n]], tint=tint, rint=rint)
       tally <- tr$removal
+      N <- sum(tr$abundance)
       dis_df_list[[p]][n, 2 + c(1:n_dist_bins[p])] <- unname(rowSums(tally))
-      rem_df_list[[p]][n, 2 + c(1:n_time_bins[p])] <- unname(colSums(tally))      
+      rem_df_list[[p]][n, 2 + c(1:n_time_bins[p])] <- unname(colSums(tally))
+      
+      dis_df_list[[p]][n, "N"] <- rem_df_list[[p]][n, "N"] <- N
     }
   }
   #stopCluster(cluster_protocols)
