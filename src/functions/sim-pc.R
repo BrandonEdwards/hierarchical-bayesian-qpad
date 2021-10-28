@@ -24,7 +24,7 @@ sim_pc <- function(n_obs = 1000,
                    n_cores = NULL)
 {
   # Randomly allocate sample size per protocol
-  protocol_prop <- round(n_obs * rdirichlet(n = 1, alpha = rep(1, n_protocols)))
+  protocol_prop <- round(n_obs * rdirichlet(n = 1, alpha = rep(3, n_protocols)))
   protocol_num <- NULL
   for (i in 1:n_protocols)
   {
