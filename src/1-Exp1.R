@@ -26,8 +26,8 @@ set.seed(seed = 6846,
          normal.kind = "Inversion")
 
 n_cores_modelling <- 4
-n_cores_sim <- c(4,6)
-n_obs <- 300
+n_cores_sim <- 30
+n_obs <- 200
 n_sim <- 1
 
 phi <- 0.4

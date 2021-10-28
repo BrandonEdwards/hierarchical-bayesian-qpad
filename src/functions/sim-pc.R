@@ -9,7 +9,7 @@
 #' @param n_dis_bins Number of distance bins per protocol (vector)
 #' @param max_times Maximum time for each protocol
 #' @param max_dist Maximum distance for each protocol
-#' @param n_cores 2D vector of cores for each protocol and each replicate
+#' @param n_cores Number of cores for replicates
 #' 
 
 sim_pc <- function(n_obs = 1000,
@@ -69,14 +69,14 @@ sim_pc <- function(n_obs = 1000,
 
   sim_landscape <- bsims_all(density = den, vocal_rate = phi, tau = tau/100)
   
-  cluster_protocols <- makeCluster(n_cores[1], type = "PSOCK")
-  registerDoParallel(cluster_protocols)
+  #cluster_protocols <- makeCluster(n_cores[1], type = "PSOCK")
+  #registerDoParallel(cluster_protocols)
   
-  foreach(p = 1:n_protocols, .packages = c('bSims', 'doParallel')) %dopar%
+  for (p in 1:n_protocols)#each(p = 1:n_protocols, .packages = c('bSims', 'doParallel')) %dopar%
   {
     n_replicates <- nrow(rem_df_list[[p]])
     
-    cluster_reps <- makeCluster(n_cores[2], type = "PSOCK")
+    cluster_reps <- makeCluster(n_cores, type = "PSOCK")
     sim_reps <- sim_landscape$replicate(n_replicates, cl = cluster_reps)
     stopCluster(cluster_reps)
     
@@ -91,7 +91,7 @@ sim_pc <- function(n_obs = 1000,
       rem_df_list[[p]][n, 2 + c(1:n_time_bins[p])] <- unname(colSums(tally))      
     }
   }
-  stopCluster(cluster_protocols)
+  #stopCluster(cluster_protocols)
   
   rem_df <- do.call(rbind, rem_df_list)
   dis_df <- do.call(rbind, dis_df_list)
