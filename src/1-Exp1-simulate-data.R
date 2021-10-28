@@ -23,8 +23,8 @@ set.seed(seed = 6846,
          normal.kind = "Inversion")
 
 n_cores <- 30
-n_obs <- c(75,100)
-n_sim <- 2
+n_obs <- c(75,500, 1000)
+n_sim <- 400
 
 phi <- 0.4
 tau <- 100
