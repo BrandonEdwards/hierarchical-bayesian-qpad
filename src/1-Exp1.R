@@ -25,9 +25,8 @@ set.seed(seed = 6846,
          kind = "Mersenne-Twister",
          normal.kind = "Inversion")
 
-n_cores_modelling <- 4
-n_cores_sim <- 30
-n_obs <- 200
+n_cores <- 30
+n_obs <- 75
 n_sim <- 1
 
 phi <- 0.4
@@ -50,7 +49,7 @@ max_dist <- matrix(data = c(50, 100, 400, NA, NA, NA, NA, NA, NA, NA, NA,
 ####### Simulate Datasets #########################
 
 sim_data <- vector(mode = "list", length = n_sim)
-
+start_time <- Sys.time()
 for (s in 1:n_sim)
 {
   sim_data[[s]] <- sim_pc(n_obs = n_obs,
@@ -62,8 +61,11 @@ for (s in 1:n_sim)
                           n_dist_bins = n_dist_bins,
                           max_times = max_times,
                           max_dist = max_dist,
-                          n_cores = n_cores_sim)
+                          n_cores = n_cores)
+#save(sim_data[[s]], file = paste0("output/exp1/sim_data_", i, ".rda"))
 }
+end_time <- Sys.time()
+print(end_time - start_time)
 
 ####### Maximum Likelihood ########################
 
@@ -133,6 +135,8 @@ for (i in 1:n_sim)
                                  pars = c("gamma"),
                                  control = list(adapt_delta = 0.8,
                                                 max_treedepth = 15)))
+
+  save(stan_fit, file = paste0("output/exp1/stan_removal_", i, ".rda"))
   
 }
 
@@ -184,5 +188,5 @@ for (i in 1:n_sim)
                                  pars = c("theta"),
                                  control = list(adapt_delta = 0.8,
                                                 max_treedepth = 15)))
-  
+  save(stan_fit, file = paste0("output/exp1/stan_distance_", i, ".rda"))
 }
