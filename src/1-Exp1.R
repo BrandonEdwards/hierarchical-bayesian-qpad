@@ -8,6 +8,7 @@
 ####### Import Libraries and External Files #######
 
 library(dirmult)
+library(bSims)
 library(detect)
 library(doParallel)
 library(foreach)
@@ -24,12 +25,14 @@ set.seed(seed = 6846,
          kind = "Mersenne-Twister",
          normal.kind = "Inversion")
 
-n_cores <- 4
-n_obs <- 1000
+n_cores_modelling <- 4
+n_cores_sim <- c(4,6)
+n_obs <- 300
 n_sim <- 1
 
-phi <- 0.3
-tau <- 200
+phi <- 0.4
+tau <- 100
+den <- 10
 n_protocols <- 4
 n_time_bins <- c(3, 4, 10, 7)
 n_dist_bins <- c(3, 4, 7, 11)
@@ -53,12 +56,13 @@ for (s in 1:n_sim)
   sim_data[[s]] <- sim_pc(n_obs = n_obs,
                           phi = phi,
                           tau = tau,
+                          den = den,
                           n_protocols = n_protocols,
                           n_time_bins = n_time_bins,
                           n_dist_bins = n_dist_bins,
                           max_times = max_times,
                           max_dist = max_dist,
-                          poisson_lambda = 20)
+                          n_cores = n_cores_sim)
 }
 
 ####### Maximum Likelihood ########################
