@@ -1,14 +1,12 @@
 ####### Script Information ########################
 # Brandon P.M. Edwards
 # Hierarchical QPAD Simulation Study
-# 1-Exp1.R
+# 02-Exp1-run-models.R
 # Created October 2021
 # Last Updated October 2021
 
 ####### Import Libraries and External Files #######
 
-library(dirmult)
-library(bSims)
 library(detect)
 library(doParallel)
 library(foreach)
@@ -26,61 +24,60 @@ set.seed(seed = 6846,
          normal.kind = "Inversion")
 
 n_cores <- 30
-n_obs <- 75
-n_sim <- 1
+n_obs <- c(75,500, 1000)
+n_sim <- 400
 
-phi <- 0.4
-tau <- 100
-den <- 10
-n_protocols <- 4
-n_time_bins <- c(3, 4, 10, 7)
-n_dist_bins <- c(3, 4, 7, 11)
-max_times <- matrix(data = c(3, 4, 5, NA, NA, NA, NA, NA, NA, NA, 
-                             2, 4, 5, 6, NA, NA, NA, NA, NA, NA,
-                             1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-                             2, 3, 4, 5, 6, 7, 8, NA, NA, NA),
-                    nrow = 4, byrow = TRUE)
-max_dist <- matrix(data = c(50, 100, 400, NA, NA, NA, NA, NA, NA, NA, NA,
-                            25, 50, 100, 150, NA, NA, NA, NA, NA, NA, NA, 
-                            25, 50, 75, 100, 125, 150, 400, NA, NA, NA, NA, 
-                            10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 150),
-                   nrow = 4, byrow = TRUE)
+# phi <- 0.4
+# tau <- 100
+# den <- 10
+# n_protocols <- 4
+# n_time_bins <- c(3, 4, 10, 7)
+# n_dist_bins <- c(3, 4, 7, 11)
+# max_times <- matrix(data = c(3, 4, 5, NA, NA, NA, NA, NA, NA, NA, 
+#                              2, 4, 5, 6, NA, NA, NA, NA, NA, NA,
+#                              1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+#                              2, 3, 4, 5, 6, 7, 8, NA, NA, NA),
+#                     nrow = 4, byrow = TRUE)
+# max_dist <- matrix(data = c(50, 100, 400, NA, NA, NA, NA, NA, NA, NA, NA,
+#                             25, 50, 100, 150, NA, NA, NA, NA, NA, NA, NA, 
+#                             25, 50, 75, 100, 125, 150, 400, NA, NA, NA, NA, 
+#                             10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 150),
+#                    nrow = 4, byrow = TRUE)
 
-####### Simulate Datasets #########################
-
-sim_data <- vector(mode = "list", length = n_sim)
-start_time <- Sys.time()
-for (s in 1:n_sim)
-{
-  sim_data[[s]] <- sim_pc(n_obs = n_obs,
-                          phi = phi,
-                          tau = tau,
-                          den = den,
-                          n_protocols = n_protocols,
-                          n_time_bins = n_time_bins,
-                          n_dist_bins = n_dist_bins,
-                          max_times = max_times,
-                          max_dist = max_dist,
-                          n_cores = n_cores)
-#save(sim_data[[s]], file = paste0("output/exp1/sim_data_", i, ".rda"))
-}
-end_time <- Sys.time()
-print(end_time - start_time)
 
 ####### Maximum Likelihood ########################
 
 cluster <- makeCluster(n_cores, type = "PSOCK")
 registerDoParallel(cluster)
 
-foreach (i = 1:n_sim, .packages = 'detect') %dopar%
+for (n in n_obs)
 {
-  x <- sim_data[[i]]
-  
-  removal <- cmulti(as.matrix(x$rem[, 3:ncol(x$rem)]) | as.matrix(x$time_design) ~ 1, type = "rem")
-  distance <- cmulti(as.matrix(x$dis[, 3:ncol(x$dis)]) | as.matrix(x$dist_design) ~ 1, type = "dis")
-  
-  model_list <- list(removal, distance)
-  save(model_list, file = paste0("output/exp1/mle_", i, ".rda"))
+  foreach (i = 1:n_sim, .packages = 'detect') %dopar%
+    {
+      file_name_sim <- paste0("output/exp1/sim_data/n",
+                              n,
+                              "-",
+                              i,
+                              ".rda")
+      file_name_dis <- paste0("output/exp1/dis_mods/n",
+                              n,
+                              "-",
+                              i,
+                              "_dis_mle.rda")
+      file_name_rem <- paste0("output/exp1/rem_mods/n",
+                              n,
+                              "-",
+                              i,
+                              "_rem_mle.rda")
+      x <- load(file_name_sim)
+      
+      removal_mle <- cmulti(as.matrix(x$rem[, 3:ncol(x$rem)]) | as.matrix(x$time_design) ~ 1, type = "rem")
+      save(removal_mle, file = file_name_rem)
+      
+      distance_mle <- cmulti(as.matrix(x$dis[, 3:ncol(x$dis)]) | as.matrix(x$dist_design) ~ 1, type = "dis")
+      save(distance_mle, file = file_name_dis)
+      
+    }
 }
 
 stopCluster(cluster)

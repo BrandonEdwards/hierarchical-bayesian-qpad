@@ -1,7 +1,7 @@
 ####### Script Information ########################
 # Brandon P.M. Edwards
 # Hierarchical QPAD Simulation Study
-# 1-Exp1-simulate-data.R
+# 01-Exp1-simulate-data.R
 # Created October 2021
 # Last Updated October 2021
 
