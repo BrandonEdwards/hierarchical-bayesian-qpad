@@ -63,12 +63,12 @@ for (n in n_obs)
                               "-",
                               i,
                               "_rem_mle.rda")
-      x <- load(file_name_sim)
+      load(file_name_sim)
       
-      removal_mle <- cmulti(as.matrix(x$rem[, 3:ncol(x$rem)]) | as.matrix(x$time_design) ~ 1, type = "rem")
+      removal_mle <- cmulti(as.matrix(sim_data$rem[, 3:ncol(x$rem)]) | as.matrix(sim_data$time_design) ~ 1, type = "rem")
       save(removal_mle, file = file_name_rem)
       
-      distance_mle <- cmulti(as.matrix(x$dis[, 3:ncol(x$dis)]) | as.matrix(x$dist_design) ~ 1, type = "dis")
+      distance_mle <- cmulti(as.matrix(sim_data$dis[, 3:ncol(x$dis)]) | as.matrix(sim_data$dist_design) ~ 1, type = "dis")
       save(distance_mle, file = file_name_dis)
       
     }
@@ -104,10 +104,10 @@ for (n in n_obs)
                             "-",
                             i,
                             "_rem_bayes.rda")
-    x <- load(file_name_sim)
+    load(file_name_sim)
     
     ############ Removal Modelling loop ################
-    rem <- x$rem[, 3:ncol(x$rem)]
+    rem <- sim_data$rem[, 3:ncol(sim_data$rem)]
     
     #' Corresponds with "bands_per_sample" in removal.stan
     time_bands_per_sample <- unname(apply(rem,
@@ -127,7 +127,7 @@ for (n in n_obs)
     abundance_per_band[is.na(abundance_per_band)] <- 0
     
     #' Corresponds with "max_time" in removal.stan
-    time_design <- x$time_design
+    time_design <- sim_data$time_design
     time_design[is.na(time_design)] <- 0
     
     stan_data_rem <- list(n_samples = n,
@@ -153,7 +153,7 @@ for (n in n_obs)
     
     ####### Distance Modelling loop #########################
     
-    dis <- x$dis[, 3:ncol(x$dis)]
+    dis <- sim_data$dis[, 3:ncol(sim_data$dis)]
     
     #' Corresponds with "bands_per_sample" in distance.stan
     dist_bands_per_sample <- unname(apply(dis,
@@ -173,7 +173,7 @@ for (n in n_obs)
     abundance_per_band[is.na(abundance_per_band)] <- 0
     
     #' Corresponds with "max_dist" in distance.stan
-    dist_design <- x$dist_design
+    dist_design <- sim_data$dist_design
     dist_design[is.na(dist_design)] <- 0
     
     stan_data_dis <- list(n_samples = n,
