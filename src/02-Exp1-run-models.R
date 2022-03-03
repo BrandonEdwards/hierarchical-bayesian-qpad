@@ -41,11 +41,11 @@ n_sim <- 400
 
 ####### Maximum Likelihood ########################
 
-cluster <- makeCluster(n_cores, type = "PSOCK")
-registerDoParallel(cluster)
-
 for (n in n_obs)
 {
+  cluster <- makeCluster(n_cores, type = "PSOCK")
+  registerDoParallel(cluster)
+
   foreach (i = 1:n_sim, .packages = 'detect') %dopar%
     {
       file_name_sim <- paste0("output/exp1/sim_data/n",
@@ -65,16 +65,15 @@ for (n in n_obs)
                               "_rem_mle.rda")
       load(file_name_sim)
       
-      removal_mle <- cmulti(as.matrix(sim_data$rem[, 3:ncol(x$rem)]) | as.matrix(sim_data$time_design) ~ 1, type = "rem")
+      removal_mle <- cmulti(as.matrix(sim_data$rem[, 3:ncol(sim_data$rem)]) | as.matrix(sim_data$time_design) ~ 1, type = "rem")
       save(removal_mle, file = file_name_rem)
       
-      distance_mle <- cmulti(as.matrix(sim_data$dis[, 3:ncol(x$dis)]) | as.matrix(sim_data$dist_design) ~ 1, type = "dis")
+      distance_mle <- cmulti(as.matrix(sim_data$dis[, 3:ncol(sim_data$dis)]) | as.matrix(sim_data$dist_design) ~ 1, type = "dis")
       save(distance_mle, file = file_name_dis)
       
     }
+  stopCluster(cluster)
 }
-
-stopCluster(cluster)
 
 ####### Bayesian Model (Stan) #####################
 
@@ -82,12 +81,9 @@ stopCluster(cluster)
 rem_stan <- stan_model(file = "stan/removal.stan")
 dis_stan <- stan_model(file = "stan/distance.stan")
 
-cluster <- makeCluster(10, type = "PSOCK")
-registerDoParallel(cluster)
-
 for (n in n_obs)
 {
-  foreach (i = 1:n_sim, .packages = 'stan') %dopar%
+  for (i in 1:n_sim)
   {
     file_name_sim <- paste0("output/exp1/sim_data/n",
                             n,
@@ -142,10 +138,10 @@ for (n in n_obs)
     removal_bayes <- sampling(rem_stan,
                               data = stan_data_rem,
                               verbose = TRUE,
-                              chains = 3,
+                              chains = 4,
                               iter = 2000,
                               warmup = 1000,
-                              cores = 3,
+                              cores = 4,
                               pars = c("gamma"),
                               control = list(adapt_delta = 0.8,
                                              max_treedepth = 15))
@@ -188,10 +184,10 @@ for (n in n_obs)
     distance_bayes <- sampling(dis_stan,
                                data = stan_data_dis,
                                verbose = TRUE,
-                               chains = 3,
+                               chains = 4,
                                iter = 2000,
                                warmup = 1000,
-                               cores = 3,
+                               cores = 4,
                                pars = c("theta"),
                                control = list(adapt_delta = 0.8,
                                               max_treedepth = 15))
@@ -200,4 +196,3 @@ for (n in n_obs)
   }
 }
 
-stopCluster(cluster)
