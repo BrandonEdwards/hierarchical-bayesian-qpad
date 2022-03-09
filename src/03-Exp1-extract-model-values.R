@@ -13,7 +13,7 @@ library(rstan)
 ####### Set Constants #############################
 
 n_obs <- c(75,500, 1000)
-n_sim <- 10
+n_sim <- 400
 models <- c("mle", "bayes")
 
 ####### Extract Data ##############################
