@@ -7,3 +7,5 @@
 *.log
 *.pdf
 *.rda
+packrat/lib*/
+*.png
